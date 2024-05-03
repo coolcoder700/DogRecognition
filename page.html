@@ -1,0 +1,79 @@
+<div style="display: flex; justify-content: center; width: 100%; position: absolute; top: 0;">
+    <div>
+        <p>Teachable Machine Image Model - p5.js and ml5.js
+             Ver.0.0
+        </p>
+        <div id="canvas-container" style="position: relative;"></div> <!-- Container for the canvas -->
+        <script src="https://cdn.jsdelivr.net/npm/p5@latest/lib/p5.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/p5@latest/lib/addons/p5.dom.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ml5@latest/dist/ml5.min.js"></script>
+        <script type="text/javascript">
+            // Classifier Variable
+            let classifier;
+            // Model URL
+            let imageModelURL = 'https://teachablemachine.withgoogle.com/models/kdzLQhA3F/';
+            
+            // Video
+            let video;
+            let flippedVideo;
+            // To store the classification
+            let label = "";
+
+            // Load the model first
+            function preload() {
+                classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+            }
+
+            function setup() {
+                let canvas = createCanvas(320, 260);
+                canvas.parent('canvas-container');
+                
+                // Create the video
+                video = createCapture(VIDEO);
+                video.size(320, 240);
+                video.hide();
+
+                flippedVideo = ml5.flipImage(video);
+                // Append the video to the video container
+                flippedVideo.hide();
+                document.getElementById('canvas-container').appendChild(flippedVideo.elt);
+
+                // Start classifying
+                classifyVideo();
+            }
+
+            function draw() {
+                background(0);
+                // Draw the video
+                image(flippedVideo, (width - 320) / 2, 0, 320, 240); // Centering horizontally and at the top
+
+                // Draw the label
+                fill(255);
+                textSize(16);
+                textAlign(CENTER);
+                text(label, width / 2, height - 4);
+            }
+
+            // Get a prediction for the current video frame
+            function classifyVideo() {
+                flippedVideo = ml5.flipImage(video)
+                classifier.classify(flippedVideo, gotResult);
+                flippedVideo.remove();
+            }
+
+            // When we get a result
+            function gotResult(error, results) {
+                // If there is an error
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+                // The results are in an array ordered by confidence.
+                // console.log(results[0]);
+                label = results[0].label;
+                // Classify again!
+                classifyVideo();
+            }
+        </script>
+    </div>
+</div>
